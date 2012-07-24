@@ -8,10 +8,17 @@ def dos_file path
 end
 
 desc "Make vagrant script a unix file, so it works with bash"
+vagrant_bin = '/cygdrive/c/vagrant/vagrant/bin/vagrant'
 task :vagrant do
-  vagrant_bin = '/cygdrive/c/vagrant/vagrant/bin/vagrant'
   if dos_file(vagrant_bin)
     system('dos2unix', vagrant_bin)
+  end
+end
+
+desc "Make vagrant work with rvm installed"
+task :vagrant_rvm => [:vagrant] do
+  if system("grep", '^${EMBEDDED_DIR}/bin/ruby', vagrant_bin)
+    system('sed', '-i', 's/^\(\${EMBEDDED_DIR}\/bin\/ruby\)/GEM_HOME= GEM_PATH= \1/', vagrant_bin)
   end
 end
 
@@ -22,7 +29,7 @@ file '/cygdrive/c/vagrant/vagrant/embedded/lib/ruby/gems/1.9.1/gems/vagrant-1.0.
 end
 
 desc "setup up vagrant from standard install to work with cygwin"
-task :vagrant_all => [:vagrant, :ssh]
+task :vagrant_all => [:vagrant, :ssh, :vagrant_rvm]
 
 desc "default => [vagrant_all]"
 task :default => [:vagrant_all]
